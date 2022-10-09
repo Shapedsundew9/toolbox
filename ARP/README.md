@@ -4,7 +4,7 @@ As to 'why' can be found in [this Ask Ubuntu question](https://askubuntu.com/que
 ### Details
 To make things 'permanent' I:
 * Fixed the IP addresses of the laptops be perpetually extending the DHCP lease on the router
-* Created a systemd start up service to set the ARP tables as needed
+* Created a systemd start up service to set the ARP tables as needed - on both laptops
 
 #### Creating the service
 ```bash
