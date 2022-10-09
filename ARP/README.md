@@ -8,7 +8,7 @@ To make things 'permanent' I:
 
 #### Creating the service
 ```bash
-chmod u+x static_arp_mapping.service
+chmod u+x static_arp_mapping.sh
 sudo mv static_arp_mapping.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo mv static_arp_mapping.sh /usr/local/bin/
