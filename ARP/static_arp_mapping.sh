@@ -3,9 +3,11 @@
 # If the TARGET_IP is not accessible create a static ARP mapping and try again.
 # Can be run standalone but general usage assumes a higher layer retry if it exists with a none-zero exit code.
 GATEWAY_IP="192.168.100.1"
-TARGET_IP="192.168.100.107"
-TARGET_HW_ADDR="60:57:18:28:48:8f"
-SLEEP_SECONDS=5
+TARGET_IP="192.168.100.121"
+TARGET_HW_ADDR="9c:b6:d0:b7:0a:5d"
+
+# SLEEP_SECONDS * ATTEMPS must be > service restart delay to ensure an overlap
+SLEEP_SECONDS=10
 ATTEMPTS=10
 
 
