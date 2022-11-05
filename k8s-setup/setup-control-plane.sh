@@ -2,12 +2,20 @@
 # Takes 0 or >0 arguments
 # If there is >0 arguments a control node will be created
 
+set -e
+
 ARCH=`dpkg --print-architecture`
-CONTAINERD_VERSION="1.6.8"
+# https://github.com/containerd/containerd/releases
+CONTAINERD_VERSION="1.6.9"
+# https://github.com/opencontainers/runc/releases
 RUNC_VERSION="1.1.4"
-CALICO_VERSION="3.24.1"
+# https://projectcalico.docs.tigera.io/getting-started/kubernetes/helm
+CALICO_VERSION="3.24.3"
+# https://github.com/containernetworking/plugins/releases
 CNI_VERSION="1.1.1"
+# https://github.com/helm/helm/releases
 HELM_VERSION="3.10.1"
+# https://github.com/derailed/k9s/releases
 K9S_VERSION="0.26.7"
 
 # This is because k9s is not consistent with the use of architecture and platform in the package naming.
@@ -27,6 +35,7 @@ sudo apt -y update
 sudo apt -y upgrade
 
 echo "Platform architecture is ${ARCH}"
+sudo ufw allow from 192.168.100.0/24 proto tcp to any port 179
 sudo ufw allow from 192.168.100.0/24 proto tcp to any port 2379
 sudo ufw allow from 192.168.100.0/24 proto tcp to any port 2380
 sudo ufw allow from 192.168.100.0/24 proto tcp to any port 6443
@@ -56,7 +65,7 @@ rm runc.${ARCH}
 echo "Installing CNI..."
 wget https://github.com/containernetworking/plugins/releases/download/v${CNI_VERSION}/cni-plugins-linux-${ARCH}-v${CNI_VERSION}.tgz
 sudo mkdir -p /opt/cni/bin
-sudo tar Cxzvf /opt/cni/bin cni-plugins-linux-arm64-v${CNI_VERSION}.tgz
+sudo tar Cxzvf /opt/cni/bin cni-plugins-linux-${ARCH}-v${CNI_VERSION}.tgz
 rm cni-plugins-linux-${ARCH}-v${CNI_VERSION}.tgz
 
 echo "Turning swap off..."
@@ -85,7 +94,22 @@ sudo apt update
 sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
+echo "Install Calico control..."
+curl -L https://github.com/projectcalico/calico/releases/download/v${CALICO_VERSION}/calicoctl-linux-${ARCH} -o calicoctl
+chmod +x ./calicoctl
+sudo mv ./calicoctl /usr/local/bin/
+if [ -d "/etc/NetworkManager" ]; then
+  sudo mkdir -p /etc/NetworkManager/conf.d
+  cat << EOF | sudo tee /etc/NetworkManager/conf.d/calico.conf
+[keyfile]
+unmanaged-devices=interface-name:cali*;interface-name:tunl*;interface-name:vxlan.calico;interface-name:vxlan-v6.calico;interface-name:wireguard.cali;interface-name:wg-v6.cali
+EOF
+fi
+
 if [ ${#} -gt 0 ]; then
+  echo "Additional firewall rules..."
+  sudo ufw allow from 192.168.100.0/24 proto tcp to any port 5473
+
   echo "Making this node the control node..."
   sudo kubeadm init --pod-network-cidr=10.157.0.0/16
   mkdir -p $HOME/.kube
