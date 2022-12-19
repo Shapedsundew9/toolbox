@@ -13,6 +13,7 @@ sudo apt -y upgrade
 
 echo "Installing useful tools..."
 sudo apt -y install cpu-checker terminator dbus-user-session htop vim git python3.10-venv libgtk-3-dev libcairo2 libcairo2-dev imagemagick htop
+sudo apt -y install libpq5=14.5-0ubuntu0.22.04.1 && sudo apt -y install libpq-dev # For psycopg2
 
 if [ ! -f /etc/apt/sources.list.d/vscode.list ]
 then
@@ -94,6 +95,7 @@ done
 # Environment updates
 echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
 echo "source ~/.bash-ss" >> ~/.bashrc
+python3 -m venv venv && source venv/bin/activate && pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib gi
 
 # Return whence we came
 popd
