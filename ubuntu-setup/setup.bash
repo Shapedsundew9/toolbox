@@ -12,7 +12,7 @@ sudo apt -y update
 sudo apt -y upgrade
 
 echo "Installing useful tools..."
-sudo apt -y install cpu-checker terminator dbus-user-session htop vim git
+sudo apt -y install cpu-checker terminator dbus-user-session htop vim git python3.10-venv libgtk-3-dev libcairo2 libcairo2-dev imagemagick htop
 
 if [ ! -f /etc/apt/sources.list.d/vscode.list ]
 then
@@ -80,12 +80,20 @@ mkdir -p ~/Projects
 cd ~/Projects
 
 REPOS="egp-population egp-seed experiments pypgtable egp-physics egp-gp-monitor egp-types toolbox egp-execution private_scripts obscure-password utils egp-stores"
+rm -f ~/.bash-ss
+touch ~/.bash-ss
+echo "export PYTHONPATH=." >> ~/.bashrc
 for repo in ${REPOS}; do
+  echo "export PYTHONPATH=\${PYTHONPATH}:~/Projects/${repo}" >> ~/.bash-ss
   if [ ! -d ${repo} ]
     then
       git clone git@github.com:Shapedsundew9/${repo}.git
     fi
 done
+
+# Environment updates
+echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
+echo "source ~/.bash-ss" >> ~/.bashrc
 
 # Return whence we came
 popd
