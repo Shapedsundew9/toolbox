@@ -14,6 +14,7 @@ sudo apt -y upgrade
 echo "Installing useful tools..."
 sudo apt -y install cpu-checker terminator dbus-user-session htop vim git python3.10-venv libgtk-3-dev libcairo2 libcairo2-dev imagemagick htop
 sudo apt -y install libpq5=14.5-0ubuntu0.22.04.1 && sudo apt -y install libpq-dev # For psycopg2
+sudo apt -y install net-tools
 
 if [ ! -f /etc/apt/sources.list.d/vscode.list ]
 then
