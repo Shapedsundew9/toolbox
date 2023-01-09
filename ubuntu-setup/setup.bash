@@ -93,7 +93,9 @@ case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
     echo "~/.bashrc has already been updated...skipping"
     ;;
   1)
-    echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
+    echo "alias commit='find ~/Projects -type d -name \".git\" -execdir git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
+    echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir git add -A \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
+    echo "alias status='find ~/Projects -type d -name \".git\" -execdir git status \;'" >> ~/.bashrc
     echo "source ~/.bash-ss" >> ~/.bashrc
     ;;
   *)
