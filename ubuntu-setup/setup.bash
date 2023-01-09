@@ -14,7 +14,8 @@ sudo apt -y upgrade
 echo "Installing useful tools..."
 sudo apt -y install cpu-checker terminator dbus-user-session htop vim git python3.10-venv libgtk-3-dev libcairo2 libcairo2-dev imagemagick htop
 sudo apt -y install libpq5=14.5-0ubuntu0.22.04.1 && sudo apt -y install libpq-dev # For psycopg2
-sudo apt -y install net-tools
+sudo apt -y install net-tools pass
+sudo apt -y install libgirepository1.0-dev # For python gi
 
 if [ ! -f /etc/apt/sources.list.d/vscode.list ]
 then
@@ -31,17 +32,7 @@ then
   curl "http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x612defb798507f25" | sudo gpg --dearmor -o /usr/share/keyrings/skewed.gpg
   sudo sh -c 'echo "deb [ arch=amd64 signed-by=/usr/share/keyrings/skewed.gpg] https://downloads.skewed.de/apt $(lsb_release -cs) main" > /etc/apt/sources.list.d/skewed.list'
   sudo apt -y update
-  sudo apt -y python3-graph-tool
-fi
-
-if [ ! -f /etc/apt/sources.list.d/pgadmin4.list ]
-then
-  echo "Installing pgadmin..."
-  curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo gpg --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg
-  sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main" > /etc/apt/sources.list.d/pgadmin4.list'
-  sudo apt -y update
-  sudo apt -y install pgadmin4
-  sudo apt -y install pgadmin4-web 
+  sudo apt -y install python3-graph-tool
 fi
 
 if [ ! -f /etc/apt/sources.list.d/docker.list ]
@@ -75,6 +66,7 @@ EOF
   wget https://github.com/docker/docker-credential-helpers/releases/download/v0.7.0/docker-credential-pass-v0.7.0.linux-amd64
   chmod a+x docker-credential-pass-v0.7.0.linux-amd64
   sudo mv docker-credential-pass-v0.7.0.linux-amd64 /usr/bin/docker-credential-pass
+  echo "See ubuntu_setup.txt in private_scripts repo for how to set up the secure crential store."
 fi
 
 echo "Cloning git repos..."
@@ -90,13 +82,34 @@ for repo in ${REPOS}; do
   if [ ! -d ${repo} ]
     then
       git clone git@github.com:Shapedsundew9/${repo}.git
+      git checkout Latest
+      git pull
     fi
 done
 
 # Environment updates
-echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
-echo "source ~/.bash-ss" >> ~/.bashrc
-python3 -m venv venv && source venv/bin/activate && pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib gi
+case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
+  0)
+    echo "~/.bashrc has already been updated...skipping"
+    ;;
+  1)
+    echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
+    echo "source ~/.bash-ss" >> ~/.bashrc
+    ;;
+  *)
+    echo "ERROR: An error occured checking ~/.bashrc. Changes have not been applied."
+    ;;
+esac
+
+cd ~/Projects
+[ ! -d ~/Projects/venv ] && python3 -m venv venv
+source ~/Projects/venv/bin/activate
+
+pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx
+
+# Graph tool is in the distribution site packages
+cd ~/Projects/venv/lib/python3.10/site-packages/
+echo "/usr/lib/python3/dist-packages" > dist-packages.pth
 
 # Return whence we came
 popd
