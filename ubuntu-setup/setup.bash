@@ -87,6 +87,15 @@ for repo in ${REPOS}; do
     fi
 done
 
+# Python 3.11
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt update -y
+sudo apt upgrade -y
+sudo apt install -y python3.11
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
+sudo apt install -y python3.11-dev python3.11-venv python3.11-distutils python3.11-gdbm python3.11-tk python3.11-lib2to3
+
 # Environment updates
 case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
   0)
@@ -104,13 +113,14 @@ case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
 esac
 
 cd ~/Projects
-[ ! -d ~/Projects/venv ] && python3 -m venv venv
-source ~/Projects/venv/bin/activate
+mkdir scratch
+[ ! -d ~/Projects/.venv ] && python3 -m venv .venv
+source ~/Projects/.venv/bin/activate
 
-pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx
+pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx pympler
 
 # Graph tool is in the distribution site packages
-cd ~/Projects/venv/lib/python3.10/site-packages/
+cd ~/Projects/.venv/lib/python3.10/site-packages/
 echo "/usr/lib/python3/dist-packages" > dist-packages.pth
 
 # Return whence we came
