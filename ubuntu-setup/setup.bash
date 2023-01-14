@@ -117,11 +117,30 @@ mkdir scratch
 [ ! -d ~/Projects/.venv ] && python3 -m venv .venv
 source ~/Projects/.venv/bin/activate
 
-pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx pympler
+pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx pympler scipy exrex
 
-# Graph tool is in the distribution site packages
-cd ~/Projects/.venv/lib/python3.10/site-packages/
+# Get latest boost
+sudo apt install -y autotools-dev automake libcgal-dev libboost-all-dev libsparsehash-dev libgtk-3-dev libcairomm-1.0-dev libcairo2-dev pkg-config python3.11-dev python3-matplotlib
+cd ~/downloads
+wget https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz
+tar -xvf boost_1_81_0.tar.gz
+cd boost_1_81_0
+./bootstrap.sh --prefix=/usr/ --with-python=python3.11
+sudo CPLUS_INCLUDE_PATH=/usr/include/python3.11 ./b2 install
+
+# Get the latest graph-tool (Need 13 GB RAM including swap minimum for -j 3)
+export CXXFLAGS=-O3
+cd scratch
+git clone https://git.skewed.de/count0/graph-tool.git
+cd graph-tool
+./autogen.sh
+./configure --with-python-module-path=$HOME/Projects/venv/lib/python3.11/site-packages --prefix=$HOME/.local
+make install -j 3
+
+
+cd ~/Projects/.venv/lib/python3.11/site-packages/
 echo "/usr/lib/python3/dist-packages" > dist-packages.pth
+
 
 # Return whence we came
 popd
@@ -129,3 +148,18 @@ popd
 echo "Cleaning up any apt cruft..."
 sudo apt -y autoremove
 sudo apt -y autoclean
+
+echo "MANUAL settings"
+echo "==============="
+echo ""
+echo "1. VScode: Add pylance plugin."
+echo "2. VScode enable pylint."
+echo "3. VScode enable document formatting."
+echo "4. Patch exrex.py as needed (see comments here)."
+# Replace
+#     from re import sre_parse
+# with:
+#   try:
+#     import re._parser as sre_parse
+#   except ImportError: # Python < 3.11
+#     from re import sre_parse
