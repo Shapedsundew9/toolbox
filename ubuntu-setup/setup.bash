@@ -129,17 +129,18 @@ cd boost_1_81_0
 sudo CPLUS_INCLUDE_PATH=/usr/include/python3.11 ./b2 install
 
 # Get the latest graph-tool (Need 13 GB RAM including swap minimum for -j 3)
+mkdir -p ~/3rd-Party-Projects
+cd ~/3rd-Party-Projects
 export CXXFLAGS=-O3
-cd scratch
 git clone https://git.skewed.de/count0/graph-tool.git
 cd graph-tool
 ./autogen.sh
 ./configure --with-python-module-path=$HOME/Projects/venv/lib/python3.11/site-packages --prefix=$HOME/.local
 make install -j 3
 
-
-cd ~/Projects/.venv/lib/python3.11/site-packages/
-echo "/usr/lib/python3/dist-packages" > dist-packages.pth
+# Not needed with local build of graph-tool.
+# cd ~/Projects/.venv/lib/python3.11/site-packages/
+# echo "/usr/lib/python3/dist-packages" > dist-packages.pth
 
 
 # Return whence we came
