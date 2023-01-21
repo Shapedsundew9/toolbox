@@ -105,6 +105,8 @@ case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
     echo "alias commit='find ~/Projects -type d -name \".git\" -execdir git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
     echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir git add -A \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
     echo "alias status='find ~/Projects -type d -name \".git\" -execdir git status \;'" >> ~/.bashrc
+    echo "alias push='find ~/Projects -type d -name \".git\" -execdir git push \;'" >> ~/.bashrc
+    echo "alias pull='find ~/Projects -type d -name \".git\" -execdir git pull \;'" >> ~/.bashrc
     echo "source ~/.bash-ss" >> ~/.bashrc
     ;;
   *)
