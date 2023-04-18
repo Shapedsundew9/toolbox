@@ -17,6 +17,25 @@ sudo apt -y install libpq5=14.5-0ubuntu0.22.04.1 && sudo apt -y install libpq-de
 sudo apt -y install net-tools pass
 sudo apt -y install libgirepository1.0-dev # For python gi
 
+echo "Configuring terminator..."
+cat << EOF | tee /home/shapedsundew9/.config/terminator/config
+[global_config]
+[keybindings]
+[profiles]
+  [[default]]
+    cursor_color = "#aaaaaa"
+    scrollback_lines = 50000
+[layouts]
+  [[default]]
+    [[[window0]]]
+      type = Window
+      parent = ""
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+[plugins]
+EOF
+
 if [ ! -f /etc/apt/sources.list.d/vscode.list ]
 then
   echo "Installing VS code..."
