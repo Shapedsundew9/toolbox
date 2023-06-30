@@ -14,7 +14,8 @@ sudo apt -y upgrade
 echo "Installing useful tools..."
 sudo apt -y install cpu-checker terminator dbus-user-session htop vim git python3.11-venv libgtk-3-dev libcairo2 libcairo2-dev imagemagick htop wget curl
 sudo apt -y install libpq5 && sudo apt -y install libpq-dev # For psycopg2
-sudo apt -y install net-tools pass
+sudo apt -y install net-tools
+sudo apt -y install postgresql-client passpostgresql-client-common # For psql
 sudo apt -y install libgirepository1.0-dev # For python gi
 
 echo "Configuring terminator..."
