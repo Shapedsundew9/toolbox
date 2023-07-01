@@ -93,7 +93,7 @@ echo "Cloning git repos..."
 mkdir -p ~/Projects
 cd ~/Projects
 
-REPOS="egp-population egp-seed experiments pypgtable egp-physics egp-gp-monitor egp-types toolbox egp-execution private_scripts obscure-password egp-utils egp-stores egp-worker egp-containers egp-execution"
+REPOS="surebrec egp-population egp-seed experiments pypgtable egp-physics egp-gp-monitor egp-types toolbox egp-execution private_scripts obscure-password egp-utils egp-stores egp-worker egp-containers egp-execution"
 rm -f ~/.bash-ss
 touch ~/.bash-ss
 echo "export PYTHONPATH=." >> ~/.bashrc
@@ -106,15 +106,6 @@ for repo in ${REPOS}; do
       git pull
     fi
 done
-
-# Python 3.11
-sudo apt install -y software-properties-common
-sudo add-apt-repository -y ppa:deadsnakes/ppa
-sudo apt update -y
-sudo apt upgrade -y
-sudo apt install -y python3.11
-sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
-sudo apt install -y python3.11-dev python3.11-venv python3.11-distutils python3.11-gdbm python3.11-tk python3.11-lib2to3
 
 # Environment updates
 case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
@@ -141,29 +132,9 @@ source ~/Projects/.venv/bin/activate
 
 pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx pympler scipy exrex
 
-# Get latest boost
-sudo apt install -y autotools-dev automake libcgal-dev libboost-all-dev libsparsehash-dev libgtk-3-dev libcairomm-1.0-dev libcairo2-dev pkg-config python3.11-dev python3-matplotlib
-cd ~/downloads
-wget https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz
-tar -xvf boost_1_81_0.tar.gz
-cd boost_1_81_0
-./bootstrap.sh --prefix=/usr/ --with-python=python3.11
-sudo CPLUS_INCLUDE_PATH=/usr/include/python3.11 ./b2 install
-
-# Get the latest graph-tool (Need 13 GB RAM including swap minimum for -j 3)
-mkdir -p ~/3rd-Party-Projects
-cd ~/3rd-Party-Projects
-export CXXFLAGS=-O3
-git clone https://git.skewed.de/count0/graph-tool.git
-cd graph-tool
-./autogen.sh
-./configure --with-python-module-path=$HOME/Projects/venv/lib/python3.11/site-packages --prefix=$HOME/.local
-make install -j 3
-
-# Not needed with local build of graph-tool.
-# cd ~/Projects/.venv/lib/python3.11/site-packages/
-# echo "/usr/lib/python3/dist-packages" > dist-packages.pth
-
+# Point venv at dist packages where needed (i.e. graph-tool)
+cd ~/Projects/.venv/lib/python3.11/site-packages/
+echo "/usr/lib/python3/dist-packages" > dist-packages.pth
 
 # Return whence we came
 popd
@@ -179,10 +150,3 @@ echo "1. VScode: Add pylance plugin."
 echo "2. VScode enable pylint."
 echo "3. VScode enable document formatting."
 echo "4. Patch exrex.py as needed (see comments here)."
-# Replace
-#     from re import sre_parse
-# with:
-#   try:
-#     import re._parser as sre_parse
-#   except ImportError: # Python < 3.11
-#     from re import sre_parse
