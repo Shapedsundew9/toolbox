@@ -93,7 +93,7 @@ echo "Cloning git repos..."
 mkdir -p ~/Projects
 cd ~/Projects
 
-REPOS="surebrec egp-population egp-seed experiments pypgtable egp-physics egp-gp-monitor egp-types toolbox egp-execution private_scripts obscure-password egp-utils egp-stores egp-worker egp-containers egp-execution"
+REPOS="egp-playground surebrec egp-population egp-seed experiments pypgtable egp-physics egp-gp-monitor egp-types toolbox egp-execution private_scripts obscure-password egp-utils egp-stores egp-worker egp-containers egp-execution"
 rm -f ~/.bash-ss
 touch ~/.bash-ss
 echo "export PYTHONPATH=." >> ~/.bashrc
