@@ -138,7 +138,7 @@ mkdir scratch
 [ ! -d ~/Projects/.venv ] && python3 -m venv .venv
 source ~/Projects/.venv/bin/activate
 
-pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx pympler scipy exrex
+pip3 install pytest numpy tqdm cerberus psycopg2 matplotlib pycairo PyGObject bokeh networkx pympler scipy exrex pytest-cov black pylint pyright
 
 # Get latest boost
 sudo apt install -y autotools-dev automake libcgal-dev libboost-all-dev libsparsehash-dev libgtk-3-dev libcairomm-1.0-dev libcairo2-dev pkg-config python3.11-dev python3-matplotlib
