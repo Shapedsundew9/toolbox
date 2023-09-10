@@ -119,6 +119,7 @@ case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
     echo "alias push='find ~/Projects -type d -name \".git\" -execdir git push \;'" >> ~/.bashrc
     echo "alias pull='find ~/Projects -type d -name \".git\" -execdir git pull \;'" >> ~/.bashrc
     echo "alias update='sudo apt update -y && sudo apt upgrade -y && sudo apt autoclean -y && sudo apt autoremove -y'" >> ~/.bashrc
+    echo "alias allblack='find ~/Projects -type d -name \".git\" -execdir black . \;'" >> ~/.bashrc
     echo "source ~/.bash-ss" >> ~/.bashrc
     ;;
   *)
