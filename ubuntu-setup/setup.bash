@@ -107,6 +107,13 @@ for repo in ${REPOS}; do
     fi
 done
 
+# Python startup
+echo "import readline" > ~/python-startup.py
+echo "def history(lines: int=20):" >> ~/python-startup.py
+echo "    \"\"\"Display lines of interpreter history.\"\"\"" >> ~/python-startup.py
+echo "    for i in range(min(readline.get_current_history_length(), lines), 0, -1):" >> ~/python-startup.py
+echo "        print (readline.get_history_item(readline.get_current_history_length() - i))" >> ~/python-startup.py
+
 # Environment updates
 case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
   0)
@@ -121,6 +128,7 @@ case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
     echo "alias update='sudo apt update -y && sudo apt upgrade -y && sudo apt autoclean -y && sudo apt autoremove -y'" >> ~/.bashrc
     echo "alias allblack='find ~/Projects -type d -name \".git\" -execdir black . \;'" >> ~/.bashrc
     echo "source ~/.bash-ss" >> ~/.bashrc
+    echo "export PYTHONSTARTUP=~/.python_startup.py" >> ~/.bashrc
     ;;
   *)
     echo "ERROR: An error occured checking ~/.bashrc. Changes have not been applied."
