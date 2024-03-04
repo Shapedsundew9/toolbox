@@ -28,19 +28,20 @@ def next_file_name(name: str) -> str:
             i += 1
 
 
-with open('../../../Documents/clipdrop.json', 'r', encoding="utf-8") as fileptr:
+with open("../../../Documents/clipdrop.json", "r", encoding="utf-8") as fileptr:
     pinfo: dict[str, str] = load(fileptr)
 
 
 def generate_image() -> str:
     """Use stable diffusion to generate an image from text"""
-    r: Response = post('https://clipdrop-api.co/text-to-image/v1',
-        files = {'prompt': (None, IMAGE_TEXT, 'text/plain')},
-        headers = { 'x-api-key': pinfo['api_key']},
-        timeout = 60
+    r: Response = post(
+        "https://clipdrop-api.co/text-to-image/v1",
+        files={"prompt": (None, IMAGE_TEXT, "text/plain")},
+        headers={"x-api-key": pinfo["api_key"]},
+        timeout=60,
     )
     if r.ok:
-        if r.headers['content-type'] == 'image/png':
+        if r.headers["content-type"] == "image/png":
             filename: str = next_file_name("image.png")
             with open(filename, "wb") as file:
                 file.write(r.content)
@@ -55,25 +56,30 @@ def generate_image() -> str:
 
 def upscale_image(filename: str) -> None:
     """Upscale an image to 4096x4096 pixels."""
-    with open(filename, 'rb') as image_file_object:
-        r: Response = post('https://clipdrop-api.co/image-upscaling/v1/upscale',
-            files = {'image_file': (filename, image_file_object, 'image/png'),},
-            data = {'target_width': 4096, 'target_height': 4096 },
-            headers = {'x-api-key': pinfo['api_key']},
-            timeout = 60
+    with open(filename, "rb") as image_file_object:
+        r: Response = post(
+            "https://clipdrop-api.co/image-upscaling/v1/upscale",
+            files={
+                "image_file": (filename, image_file_object, "image/png"),
+            },
+            data={"target_width": 4096, "target_height": 4096},
+            headers={"x-api-key": pinfo["api_key"]},
+            timeout=60,
         )
     if r.ok:
-        if r.headers['content-type'] == 'image/jpeg':
-            newname: str = basename(filename).split('.')[0] + 'u.jpeg'
+        if r.headers["content-type"] == "image/jpeg":
+            newname: str = basename(filename).split(".")[0] + "u.jpeg"
             with open(newname, "wb") as file:
                 file.write(r.content)
             print(f"Upscaled image saved successfully as {newname}")
         else:
-            print(f"The response is not of MIME type 'image/jpeg': {r.headers['content-type']}")
+            print(
+                f"The response is not of MIME type 'image/jpeg': {r.headers['content-type']}"
+            )
     else:
         r.raise_for_status()
     sys_exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     upscale_image(generate_image())
