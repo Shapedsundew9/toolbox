@@ -20,3 +20,8 @@ e.g.
 cd ~/Projects/egp_physics
 pytest --doctest-modules --junitxml=junit/test-results.xml --cov=egp_physics --cov-report=xml --cov-report=html --cov-config=.coveragerc --cov-branch tests/test_insertion.py
 ```
+
+### Copy files to all project directories
+```bash
+find .. -type d -name ".git" -not -path "*/egp-types/*" -execdir cp ~/Projects/egp-types/.pylintrc . \;
+```
