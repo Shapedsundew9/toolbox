@@ -121,12 +121,13 @@ case `grep -Fx commitall ~/.bashrc >/dev/null; echo $?` in
     ;;
   1)
     echo "alias commit='find ~/Projects -type d -name \".git\" -execdir echo \; pwd \; git add -u \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
-    echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir echo \; pwd \; git add -A \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
-    echo "alias status='find ~/Projects -type d -name \".git\" -execdir echo \; pwd \; git status \;'" >> ~/.bashrc
-    echo "alias push='find ~/Projects -type d -name \".git\" -execdir echo \; pwd \; git push \;'" >> ~/.bashrc
-    echo "alias pull='find ~/Projects -type d -name \".git\" -execdir echo \; pwd \; git pull \;'" >> ~/.bashrc
+    echo "alias commitall='find ~/Projects -type d -name \".git\" -execdir echo \; -execdir pwd \; -execdir git add -A \; -execdir git commit -m \"Latest\" \; -execdir git push \;'" >> ~/.bashrc
+    echo "alias status='find ~/Projects -type d -name \".git\" -execdir echo \; -execdir pwd \; -execdir git status \;'" >> ~/.bashrc
+    echo "alias push='find ~/Projects -type d -name \".git\" -execdir echo \; -execdir pwd \; -execdir git push \;'" >> ~/.bashrc
+    echo "alias pull='find ~/Projects -type d -name \".git\" -execdir echo \; -execdir pwd \; -execdir git pull \;'" >> ~/.bashrc
+    echo "alias checkout='find ~/Projects -type d -name \".git\" -execdir echo \; -execdir pwd \; -execdir git checkout latest \;'" >> ~/.bashrc
     echo "alias update='sudo apt update -y && sudo apt upgrade -y && sudo apt autoclean -y && sudo apt autoremove -y'" >> ~/.bashrc
-    echo "alias allblack='find ~/Projects -type d -name \".git\" -execdir echo \; pwd \; black . \;'" >> ~/.bashrc
+    echo "alias allblack='find ~/Projects -type d -name \".git\" -execdir echo \; -execdir pwd \; -execdir black . \;'" >> ~/.bashrc
     echo "source ~/.bash-ss" >> ~/.bashrc
     echo "export PYTHONSTARTUP=~/.python_startup.py" >> ~/.bashrc
     ;;
