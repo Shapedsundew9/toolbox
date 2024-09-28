@@ -1,0 +1,148 @@
+"""Upload photos to Google Photos in batches using the Google Photos Library API.
+
+Go to https://console.cloud.google.com/welcome/ and create a project if you don't have one.
+Enable the Google Photos Library API for the project.
+Navigation Menu (Hamburger Icon) -> APIs & Services -> Library ->
+Google Photos Library API -> Enable
+
+Create OAuth 2.0 credentials for the project.
+Navigation Menu (Hamburger Icon) -> APIs & Services -> Credentials -> Create Credentials ->
+OAuth client ID
+Choose 'Desktop app' as the application type.
+Download the client secrets file and save it as 'client_secret.json' in the same directory
+as this script. Run the script to authenticate the user and upload photos to Google Photos
+(will use profile last used in chrome).
+"""
+import json
+import os
+import time
+
+import requests
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from tqdm import tqdm
+
+
+# Replace with the path to your client secrets file
+CLIENT_SECRETS_FILE = 'client_secret.json'
+
+# If modifying these scopes, delete the file token.json.
+SCOPES = ['https://www.googleapis.com/auth/photoslibrary.appendonly']
+
+# Set the batch size
+BATCH_SIZE = 10
+
+# File to store the names of uploaded files
+UPLOADED_FILES_FILE = 'uploaded_files.txt'
+
+def get_access_token():
+    """
+    Authenticates the user using OAuth 2.0 client secrets and returns an access token.
+    """
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    assert creds is not None, "No valid credentials found."
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CLIENT_SECRETS_FILE, SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.json', 'w', encoding='utf-8') as token:
+            token.write(creds.to_json())
+    return creds.token
+
+def upload_photos(access_token, photos):
+    """
+    Uploads a batch of photos to Google Photos using REST requests.
+    """
+    try:
+        upload_tokens = []
+        headers = {'Authorization': f'Bearer {access_token}'}
+
+        for photo in tqdm(photos, desc='Uploading batch'):
+            with open(photo, 'rb') as f:
+                file_content = f.read()
+            # Upload the media file and get the upload token
+            response = requests.post(
+                'https://photoslibrary.googleapis.com/v1/uploads',
+                headers=headers,
+                data=file_content,
+                timeout=180
+            )
+            response.raise_for_status()  # Raise an exception for error responses
+            upload_token = response.content.decode('utf-8')
+            upload_tokens.append(upload_token)
+
+        # Create the media items in Google Photos
+        request_body = {
+            'newMediaItems': [
+                {'simpleMediaItem': {'uploadToken': token}} for token in upload_tokens
+            ]
+        }
+        response = requests.post(
+            'https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate',
+            headers=headers,
+            data=json.dumps(request_body),
+            timeout=180
+        )
+        response.raise_for_status()
+        response_json = response.json()
+
+        # Print the URLs of the uploaded photos
+        for item in response_json['newMediaItemResults']:
+            print(f"Photo URL: {item['mediaItem']['productUrl']}")
+        return True
+
+    except requests.exceptions.RequestException as e:
+        if e.response is not None and e.response.status_code == 401:  # Check for Unauthorized error
+            print("Access token expired. Refreshing...")
+            access_token = get_access_token()  # Get a new access token
+            return upload_photos(access_token, photos)  # Retry the upload
+        else:
+            print(f"An error occurred: {e}")
+            return False
+
+def main():
+    """
+    Main function to upload photos in batches.
+    """
+    access_token = get_access_token()
+
+    # Get a list of all photos in the current directory
+    all_photos = [
+        f for f in os.listdir('.')
+        if os.path.isfile(f) and f.lower().endswith(
+            ('.png', '.jpg', '.jpeg', '.gif', '.bmp'))
+    ]
+
+    # Keep track of uploaded files
+    uploaded_files = set()
+    if os.path.exists(UPLOADED_FILES_FILE):
+        with open(UPLOADED_FILES_FILE, 'r', encoding='utf-8') as f:
+            uploaded_files = set(f.read().splitlines())
+
+    # Upload photos in batches
+    for i in range(0, len(all_photos), BATCH_SIZE):
+        batch = all_photos[i:i + BATCH_SIZE]
+        batch = [photo for photo in batch if photo not in uploaded_files]
+        if not batch:
+            continue
+
+        print(
+            f"Uploading batch {i // BATCH_SIZE + 1} of {len(all_photos) // BATCH_SIZE + 1}"
+        )
+        if upload_photos(access_token, batch):
+            with open(UPLOADED_FILES_FILE, 'a', encoding='utf-8') as f:
+                for photo in batch:
+                    f.write(photo + '\n')
+                    uploaded_files.add(photo)
+        else:
+            print("Error uploading batch. Retrying in 60 seconds...")
+            time.sleep(60)
+
+if __name__ == '__main__':
+    main()
