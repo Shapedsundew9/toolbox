@@ -9,9 +9,15 @@ Create OAuth 2.0 credentials for the project.
 Navigation Menu (Hamburger Icon) -> APIs & Services -> Credentials -> Create Credentials ->
 OAuth client ID
 Choose 'Desktop app' as the application type.
+Add your self as a tester.
+You will need to add access to photoslibrary.appendonly scope to the OAuth client ID.
 Download the client secrets file and save it as 'client_secret.json' in the same directory
 as this script and the photos to upload. Run the script to authenticate the user and 
 upload photos to Google Photos (will use profile last used in chrome).
+
+NB: Keep the chrome window with the profile you want to use open and selected when running
+the script otherwise when the token expires (about 1 hour) the script will get stuck waiting
+for the user to authenticate.
 """
 import json
 import os
