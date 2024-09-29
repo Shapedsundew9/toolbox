@@ -58,8 +58,7 @@ def get_access_token():
     creds = None
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    assert creds is not None, "No valid credentials found."
-    if not creds or not creds.valid:
+    if creds is None or not creds or not creds.valid or creds.expired:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         flow = InstalledAppFlow.from_client_secrets_file(
