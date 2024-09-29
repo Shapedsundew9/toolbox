@@ -44,6 +44,12 @@ UPLOADED_FILES_FILE = 'uploaded_files.txt'
 # File to record invalid image files
 INVALID_IMAGE_FILES_FILE = 'invalid_image_files.txt'
 
+# Request timeout in seconds. Large files may take longer to upload.
+# With a 50Mb/s connection you can (theoretically) upload 200MB in 32 seconds.
+# 180s timeout allows a 200MB file to be uploaded at a bandwidth of 1.1Mb/s
+# which should be sufficient for most users.
+REQUEST_TIMEOUT = 180
+
 
 def get_access_token():
     """
@@ -109,7 +115,7 @@ def upload_photos(access_token, photos):
                 'https://photoslibrary.googleapis.com/v1/uploads',
                 headers=headers,
                 data=file_content,
-                timeout=180
+                timeout=REQUEST_TIMEOUT
             )
             response.raise_for_status()  # Raise an exception for error responses
             upload_token = response.content.decode('utf-8')
@@ -125,7 +131,7 @@ def upload_photos(access_token, photos):
             'https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate',
             headers=headers,
             data=json.dumps(request_body),
-            timeout=180
+            timeout=REQUEST_TIMEOUT
         )
         response.raise_for_status()
         response_json = response.json()
