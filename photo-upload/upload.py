@@ -75,6 +75,8 @@ def is_valid_image(filename) -> bool:
     # Check file size
     file_size = os.path.getsize(filename)
     if file_size > 200 * 1024 * 1024:  # 200MB is max filesize supported by Google Photos
+        with open(INVALID_IMAGE_FILES_FILE, 'a', encoding='utf-8') as f:
+            f.write(filename + ' is > 200 MB\n')
         return False
 
     # Check image format using Pillow
@@ -85,7 +87,7 @@ def is_valid_image(filename) -> bool:
     except UnidentifiedImageError:
         print(f"Unidentified image type: {filename}")
         with open(INVALID_IMAGE_FILES_FILE, 'a', encoding='utf-8') as f:
-            f.write(filename + '\n')
+            f.write(filename + ' is an invalid format\n')
         return False
 
 
