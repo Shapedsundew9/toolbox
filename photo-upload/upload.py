@@ -16,13 +16,16 @@ as this script. Run the script to authenticate the user and upload photos to Goo
 import json
 import os
 import time
-
 import requests
+
+from PIL import Image, UnidentifiedImageError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from tqdm import tqdm
 
+# Supported image formats
+VALID_IMAGE_FORMATS = ['AVIF', 'BMP', 'GIF', 'HEIC', 'ICO', 'JPEG', 'PNG', 'TIFF', 'WEBP']
 
 # Replace with the path to your client secrets file
 CLIENT_SECRETS_FILE = 'client_secret.json'
@@ -36,6 +39,10 @@ BATCH_SIZE = 10
 # File to store the names of uploaded files
 UPLOADED_FILES_FILE = 'uploaded_files.txt'
 
+# File to record invalid image files
+INVALID_IMAGE_FILES_FILE = 'invalid_image_files.txt'
+
+
 def get_access_token():
     """
     Authenticates the user using OAuth 2.0 client secrets and returns an access token.
@@ -47,13 +54,40 @@ def get_access_token():
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CLIENT_SECRETS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
+        flow = InstalledAppFlow.from_client_secrets_file(
+            CLIENT_SECRETS_FILE, SCOPES)
+        creds = flow.run_local_server(port=0)
         with open('token.json', 'w', encoding='utf-8') as token:
             token.write(creds.to_json())
     return creds.token
+
+
+def is_valid_image(filename) -> bool:
+    """
+    Checks if a file is a valid image of one of the specified formats and less than 200MB in size.
+
+    Args:
+        filename: The path to the file.
+
+    Returns:
+        True if the file is a valid image, False otherwise.
+    """
+    # Check file size
+    file_size = os.path.getsize(filename)
+    if file_size > 200 * 1024 * 1024:  # 200MB is max filesize supported by Google Photos
+        return False
+
+    # Check image format using Pillow
+    try:
+        with Image.open(filename) as img:
+            img_format = img.format
+            return img_format in VALID_IMAGE_FORMATS
+    except UnidentifiedImageError:
+        print(f"Unidentified image type: {filename}")
+        with open(INVALID_IMAGE_FILES_FILE, 'a', encoding='utf-8') as f:
+            f.write(filename + '\n')
+        return False
+
 
 def upload_photos(access_token, photos):
     """
@@ -94,7 +128,11 @@ def upload_photos(access_token, photos):
 
         # Print the URLs of the uploaded photos
         for item in response_json['newMediaItemResults']:
-            print(f"Photo URL: {item['mediaItem']['productUrl']}")
+            if 'mediaItem' in item:
+                print(f"Photo URL: {item['mediaItem']['productUrl']}")
+            else:
+                print("An error occurred: mediaItem not found in response.")
+                return False
         return True
 
     except requests.exceptions.RequestException as e:
@@ -104,7 +142,9 @@ def upload_photos(access_token, photos):
             return upload_photos(access_token, photos)  # Retry the upload
         else:
             print(f"An error occurred: {e}")
+            print(f"Uploading batch failed: {photos}")
             return False
+
 
 def main():
     """
@@ -128,7 +168,7 @@ def main():
     # Upload photos in batches
     for i in range(0, len(all_photos), BATCH_SIZE):
         batch = all_photos[i:i + BATCH_SIZE]
-        batch = [photo for photo in batch if photo not in uploaded_files]
+        batch = [photo for photo in batch if photo not in uploaded_files and is_valid_image(photo)]
         if not batch:
             continue
 
@@ -143,6 +183,7 @@ def main():
         else:
             print("Error uploading batch. Retrying in 60 seconds...")
             time.sleep(60)
+
 
 if __name__ == '__main__':
     main()
