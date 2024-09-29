@@ -10,8 +10,8 @@ Navigation Menu (Hamburger Icon) -> APIs & Services -> Credentials -> Create Cre
 OAuth client ID
 Choose 'Desktop app' as the application type.
 Download the client secrets file and save it as 'client_secret.json' in the same directory
-as this script. Run the script to authenticate the user and upload photos to Google Photos
-(will use profile last used in chrome).
+as this script and the photos to upload. Run the script to authenticate the user and 
+upload photos to Google Photos (will use profile last used in chrome).
 """
 import json
 import os
@@ -26,6 +26,8 @@ from tqdm import tqdm
 
 # Supported image formats
 VALID_IMAGE_FORMATS = ['AVIF', 'BMP', 'GIF', 'HEIC', 'ICO', 'JPEG', 'PNG', 'TIFF', 'WEBP']
+_VALID_IMAGE_SUFFIXES = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.tiff', '.ico', '.avif', '.heic')
+VALID_IMAGE_SUFFIXES = tuple(f.upper() for f in _VALID_IMAGE_SUFFIXES) + _VALID_IMAGE_SUFFIXES
 
 # Replace with the path to your client secrets file
 CLIENT_SECRETS_FILE = 'client_secret.json'
@@ -144,21 +146,27 @@ def upload_photos(access_token, photos):
             return upload_photos(access_token, photos)  # Retry the upload
         else:
             print(f"An error occurred: {e}")
-            print(f"Uploading batch failed: {photos}")
+            print(f"Uploading batch failed for images:\n{'\n'.join(photos)}")
             return False
 
 
-def main():
+def main() -> int:
     """
     Main function to upload photos in batches.
+    If files were uploaded successfully, their names are stored in a file to avoid re-uploading.
+    Any invalid image files are recorded in a separate file.
+
+    Returns
+    -------
+    True if at least one file was uploaded successfully, False otherwise.
     """
     access_token = get_access_token()
+    num_uploaded = 0
 
     # Get a list of all photos in the current directory
     all_photos = [
         f for f in os.listdir('.')
-        if os.path.isfile(f) and f.lower().endswith(
-            ('.png', '.jpg', '.jpeg', '.gif', '.bmp'))
+        if os.path.isfile(f) and f.lower().endswith(VALID_IMAGE_SUFFIXES)
     ]
 
     # Keep track of uploaded files
@@ -182,10 +190,15 @@ def main():
                 for photo in batch:
                     f.write(photo + '\n')
                     uploaded_files.add(photo)
+            num_uploaded += len(batch)
         else:
             print("Error uploading batch. Retrying in 60 seconds...")
             time.sleep(60)
 
+    return num_uploaded
+
 
 if __name__ == '__main__':
-    main()
+    while (num := main()) > 0:
+        print("{num} files uploaded successfully.\nRescanning for new files.")
+    print("No new files found. Done.")
